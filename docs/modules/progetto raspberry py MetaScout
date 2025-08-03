@@ -1,0 +1,156 @@
+# 🧠 Architettura Raspberry Pi Ottimizzato per Microservizi e MQTT
+
+## 📦 Obiettivo
+
+Creare un sistema leggero e modulare basato su Raspberry Pi che:
+- Comunica tramite MQTT (Mosquitto)
+- Esegue microservizi per il polling di dispositivi ogni 30 secondi
+- Archivia dati su PC remoto (InfluxDB)
+- Integra fonti esterne (meteo, RSS)
+- Scrive un diario di bordo automatico
+
+---
+
+## 🛠️ Preparazione Raspberry Pi
+
+### 🔧 Requisiti hardware
+
+- Raspberry Pi 3/4
+- Alimentazione stabile
+- Connessione Ethernet o Wi-Fi
+- MicroSD con Raspberry Pi OS Lite
+
+### ⚙️ Setup iniziale
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install python3 python3-pip git -y
+🧰 Installazione Mosquitto
+bash
+sudo apt install mosquitto mosquitto-clients -y
+sudo systemctl enable mosquitto
+🔐 Configurazione base (/etc/mosquitto/mosquitto.conf)
+ini
+listener 1883
+allow_anonymous true
+persistence false
+log_type error
+log_type warning
+log_type notice
+🧩 Servizi e Frequenze
+Servizio	Frequenza	Carico	Note
+Mosquitto (MQTT)	Sempre	Basso	Broker centrale
+Polling dispositivi	Ogni 30 sec	Medio	Pubblica su MQTT
+Meteo / RSS	1–2/dì	Basso	Pubblica su MQTT
+Diario di bordo	1/dì	Basso	Pubblica su MQTT o scrive su file
+InfluxDB (su PC)	1/dì	Basso	Riceve via MQTT o push diretto
+🔄 Microservizio: Polling Dispositivi
+📡 Funzione
+Legge dati da sensori (es. temperatura, batteria)
+
+Pubblica su MQTT ogni 30 secondi
+
+🧪 Esempio Python
+python
+import time
+import paho.mqtt.client as mqtt
+
+client = mqtt.Client()
+client.connect("localhost", 1883, 60)
+
+while True:
+    temp = 22.5  # Simulazione
+    battery = 87
+
+    client.publish("sensor/temp", temp)
+    client.publish("sensor/battery", battery)
+
+    time.sleep(30)
+🌐 Microservizi Esterni
+☁️ Meteo / RSS
+Richiesta HTTP a fonti esterne
+
+Parsing e pubblicazione su MQTT
+
+📘 Diario di bordo
+Raccoglie eventi e dati
+
+Scrive su file locale o pubblica su diario/entry
+
+📊 Integrazione con InfluxDB (su PC)
+Raspberry pubblica su MQTT
+
+PC sottoscrive e scrive su InfluxDB
+
+Alternativa: push diretto via HTTP
+
+🧠 Espansioni future
+Autenticazione MQTT con ACL
+
+Dashboard Grafana su PC
+
+AI/ML per suggerimenti e automazioni
+
+Backup automatici su cloud
+
+✅ Checklist finale
+[x] Raspberry configurato
+
+[x] Mosquitto installato e funzionante
+
+[x] Microservizi attivi
+
+[x] Comunicazione MQTT testata
+
+[x] InfluxDB pronto su PC
+
+[x] Diario automatico operativo
+
+
+⚡ Raspberry Pi – Stima Consumo Energetico
+🔧 Configurazione prevista
+Raspberry Pi 3B+ o 4
+
+Raspberry Pi OS Lite (headless)
+
+Wi-Fi attivo
+
+Mosquitto MQTT attivo
+
+Microservizi in Python (polling ogni 30 sec)
+
+Nessuna periferica USB, HDMI, BT, LED
+
+CPU underclocked a 600 MHz
+
+🔋 Consumo stimato
+Stato operativo	Consumo (Watt)	Corrente @5V
+Idle (Wi-Fi attivo)	~1.5–2.0 W	~300–400 mA
+Polling + MQTT	~2.0–2.5 W	~400–500 mA
+Picco (breve elaborazione)	~3.0 W	~600 mA
+➡️ Media giornaliera stimata: ~2.2 W × 24 h = ~53 Wh/giorno ~19 kWh/anno → ~5–6 € / anno (dipende dalla tariffa)
+
+🧠 Ottimizzazioni che aiutano
+✅ Undercocking CPU → -0.5 W
+
+✅ Disattivazione HDMI, BT, LED → -0.3 W
+
+✅ Autosuspend USB → -0.2 W
+
+✅ Nessuna GUI → -0.5 W
+
+🧪 Monitoraggio consigliato
+🔌 USB Power Meter → misurazione diretta
+
+📟 Smart plug MQTT → integrazione con domotica
+
+📊 Logging su InfluxDB → storico consumi
+
+🧭 Confronto con altri dispositivi
+Dispositivo	Consumo medio
+Raspberry Pi 3B+ (ottimizzato)	~2.2 W
+Raspberry Pi 4 (non ottimizzato)	~3.5–4.5 W
+ESP32 (Wi-Fi + MQTT)	~0.5 W
+Beelink PC (idle)	~10–15 W
+🧠 Conclusione
+✅ Il tuo Raspberry Pi, con Wi-Fi attivo e microservizi leggeri, consuma meno di una lampadina LED da 5W ✅ Perfetto per uso continuo in camper, anche con alimentazione solare ✅ Può essere ulteriormente ottimizzato se necessario
